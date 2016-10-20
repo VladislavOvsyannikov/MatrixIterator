@@ -8,6 +8,7 @@ import java.util.Scanner;
 public class DenseMatrix implements Matrix {
     public int size;
     public int matrix[][];
+    public static int[][] res;
 
     public DenseMatrix(String file){
         readDense(file);
@@ -19,21 +20,60 @@ public class DenseMatrix implements Matrix {
     }
 
     public Matrix mul(Matrix x){
-        if (x instanceof DenseMatrix) return mulDenseDense((DenseMatrix) x);
+        if (x instanceof DenseMatrix) try {
+            return mulDenseDense((DenseMatrix) x);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+            return null;
+        }
         else return mulDenseSparse((SparseMatrix) x);
     }
 
-    public DenseMatrix mulDenseDense(DenseMatrix other){
+    public DenseMatrix mulDenseDense(DenseMatrix other) throws InterruptedException {
         transDense(other.matrix);
-        DenseMatrix res = new DenseMatrix(size);
-        for (int i = 0; i < size; i++) {
-            for (int j = 0; j < size; j++) {
-                for (int k = 0; k < size; k++) {
-                    res.matrix[i][j] = res.matrix[i][j] + this.matrix[i][k] * other.matrix[j][k];
+        res = new int[size][size];
+        DenseMatrix result = new DenseMatrix(size);
+        int k = size/4;
+        Thread t1 = new Thread(new MulDD(this.matrix, other.matrix,0,k));
+        Thread t2 = new Thread(new MulDD(this.matrix, other.matrix,k,2*k));
+        Thread t3 = new Thread(new MulDD(this.matrix, other.matrix,2*k,3*k));
+        Thread t4 = new Thread(new MulDD(this.matrix, other.matrix,3*k,size));
+        t1.start();
+        t2.start();
+        t3.start();
+        t4.start();
+        t1.join();
+        t2.join();
+        t3.join();
+        t4.join();
+        result.matrix = res;
+        return result;
+    }
+
+
+
+    public class MulDD implements Runnable{
+        int[][] A;
+        int[][] B;
+        int m;
+        int n;
+
+        public MulDD(int[][] A, int[][] B, int m, int n){
+            this.A = A;
+            this.B = B;
+            this.n = n;
+            this.m = m;
+        }
+
+        public void run() {
+            for (int i =m ; i < n; i++) {
+                for (int j = 0; j < size; j++) {
+                    for (int k = 0; k < size; k++) {
+                        res[i][j] = res[i][j] + A[i][k] * B[j][k];
+                    }
                 }
             }
         }
-        return res;
     }
 
     public DenseMatrix mulDenseSparse(SparseMatrix other){
