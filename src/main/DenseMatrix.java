@@ -8,7 +8,7 @@ import java.util.Scanner;
 public class DenseMatrix implements Matrix {
     public int size;
     public int matrix[][];
-    public static int[][] res;
+
 
     public DenseMatrix(String file){
         readDense(file);
@@ -31,13 +31,12 @@ public class DenseMatrix implements Matrix {
 
     public DenseMatrix mulDenseDense(DenseMatrix other) throws InterruptedException {
         transDense(other.matrix);
-        res = new int[size][size];
         DenseMatrix result = new DenseMatrix(size);
         int k = size/4;
-        Thread t1 = new Thread(new MulDD(this.matrix, other.matrix,0,k));
-        Thread t2 = new Thread(new MulDD(this.matrix, other.matrix,k,2*k));
-        Thread t3 = new Thread(new MulDD(this.matrix, other.matrix,2*k,3*k));
-        Thread t4 = new Thread(new MulDD(this.matrix, other.matrix,3*k,size));
+        Thread t1 = new Thread(new MulDD(result.matrix,this.matrix, other.matrix,0,k));
+        Thread t2 = new Thread(new MulDD(result.matrix,this.matrix, other.matrix,k,2*k));
+        Thread t3 = new Thread(new MulDD(result.matrix,this.matrix, other.matrix,2*k,3*k));
+        Thread t4 = new Thread(new MulDD(result.matrix,this.matrix, other.matrix,3*k,size));
         t1.start();
         t2.start();
         t3.start();
@@ -46,23 +45,22 @@ public class DenseMatrix implements Matrix {
         t2.join();
         t3.join();
         t4.join();
-        result.matrix = res;
         return result;
     }
-
-
 
     public class MulDD implements Runnable{
         int[][] A;
         int[][] B;
         int m;
         int n;
+        int[][] res;
 
-        public MulDD(int[][] A, int[][] B, int m, int n){
+        public MulDD(int[][] res, int[][] A, int[][] B, int m, int n){
             this.A = A;
             this.B = B;
             this.n = n;
             this.m = m;
+            this.res = res;
         }
 
         public void run() {

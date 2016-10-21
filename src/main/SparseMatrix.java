@@ -19,38 +19,106 @@ public class SparseMatrix implements Matrix{
     }
 
     public Matrix mul(Matrix x){
-        if (x instanceof SparseMatrix) return mulSparseSparse((SparseMatrix) x);
+        if (x instanceof SparseMatrix) try {
+            return mulSparseSparse((SparseMatrix) x);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+            return null;
+        }
         else return mulSparseDense((DenseMatrix) x);
     }
 
-    public SparseMatrix mulSparseSparse(SparseMatrix other){
+    public SparseMatrix mulSparseSparse(SparseMatrix other) throws InterruptedException {
         transSparce(other.map);
-        SparseMatrix res = new SparseMatrix(size);
+        SparseMatrix result = new SparseMatrix(size);
+
         Iterator<HashMap.Entry<Integer, Row>> iterMap1 = this.map.entrySet().iterator();
-        while (iterMap1.hasNext()) {
-            HashMap.Entry<Integer, Row> entry1 = iterMap1.next();
-            Row row1 = entry1.getValue();
-            Row resRow = new Row();
-            Iterator<HashMap.Entry<Integer, Row>> iterMap2 = other.map.entrySet().iterator();
-            while (iterMap2.hasNext()) {
-                HashMap.Entry<Integer, Row> entry2 = iterMap2.next();
-                Row row2 = entry2.getValue();
-                if (!row1.mapRow.isEmpty() && !row2.mapRow.isEmpty()) {
-                    Iterator<HashMap.Entry<Integer, Integer>> iterRow1 = row1.mapRow.entrySet().iterator();
-                    int r = 0;
-                    while (iterRow1.hasNext()) {
-                        HashMap.Entry<Integer, Integer> entry3 = iterRow1.next();
-                        int j = entry3.getKey();
-                        if (row2.mapRow.get(j)!=null){
-                            r = r + entry3.getValue()*row2.mapRow.get(j);
-                            resRow.mapRow.put(entry2.getKey(),r);
+
+        Thread t1 = new Thread(new MulSS(result.map,this.map,other.map,iterMap1));
+        Thread t2 = new Thread(new MulSS(result.map,this.map,other.map,iterMap1));
+        Thread t3 = new Thread(new MulSS(result.map,this.map,other.map,iterMap1));
+        Thread t4 = new Thread(new MulSS(result.map,this.map,other.map,iterMap1));
+        t1.start();
+        t2.start();
+        t3.start();
+        t4.start();
+        t1.join();
+        t2.join();
+        t3.join();
+        t4.join();
+
+// Iterator<HashMap.Entry<Integer, Row>> iterMap1 = this.map.entrySet().iterator();
+// while (iterMap1.hasNext()) {
+// HashMap.Entry<Integer, Row> entry1 = iterMap1.next();
+// Row row1 = entry1.getValue();
+// Row resRow = new Row();
+// Iterator<HashMap.Entry<Integer, Row>> iterMap2 = other.map.entrySet().iterator();
+// while (iterMap2.hasNext()) {
+// HashMap.Entry<Integer, Row> entry2 = iterMap2.next();
+// Row row2 = entry2.getValue();
+// if (!row1.mapRow.isEmpty() && !row2.mapRow.isEmpty()) {
+// Iterator<HashMap.Entry<Integer, Integer>> iterRow1 = row1.mapRow.entrySet().iterator();
+// int r = 0;
+// while (iterRow1.hasNext()) {
+// HashMap.Entry<Integer, Integer> entry3 = iterRow1.next();
+// int j = entry3.getKey();
+// if (row2.mapRow.get(j)!=null){
+// r = r + entry3.getValue()*row2.mapRow.get(j);
+// resRow.mapRow.put(entry2.getKey(),r);
+// }
+// }
+// }
+// }
+// res.map.put(entry1.getKey(), resRow);
+// }
+
+        return result;
+    }
+
+    public static class MulSS implements Runnable {
+        HashMap<Integer, Row> A;
+        HashMap<Integer, Row> B;
+        HashMap<Integer, Row> res;
+        static Iterator<HashMap.Entry<Integer, Row>> E;
+
+        public MulSS(HashMap<Integer, Row> res,HashMap<Integer, Row> A, HashMap<Integer, Row> B, Iterator<HashMap.Entry<Integer, Row>> E) {
+            this.A = A;
+            this.B = B;
+            this.E = E;
+            this.res = res;
+        }
+
+        public void run() {
+            for  (Row row1 = getFreeRow(E);row1!=null;row1 = getFreeRow(E)) {
+                Row resRow = new Row();
+                Iterator<HashMap.Entry<Integer, Row>> iterMap2 = B.entrySet().iterator();
+                while (iterMap2.hasNext()) {
+                    HashMap.Entry<Integer, Row> entry2 = iterMap2.next();
+                    Row row2 = entry2.getValue();
+                    if (!row1.mapRow.isEmpty() && !row2.mapRow.isEmpty()) {
+                        Iterator<HashMap.Entry<Integer, Integer>> iterRow1 = row1.mapRow.entrySet().iterator();
+                        int r = 0;
+                        while (iterRow1.hasNext()) {
+                            HashMap.Entry<Integer, Integer> entry3 = iterRow1.next();
+                            int j = entry3.getKey();
+                            if (row2.mapRow.get(j) != null) {
+                                r = r + entry3.getValue() * row2.mapRow.get(j);
+                            }
                         }
+                        resRow.mapRow.put(entry2.getKey(), r);
                     }
                 }
+                res.put(row1.index, resRow);
             }
-            res.map.put(entry1.getKey(), resRow);
         }
-        return res;
+        public synchronized Row getFreeRow(Iterator<HashMap.Entry<Integer, Row>> E) {
+            if (E.hasNext()) {
+                HashMap.Entry<Integer, Row> entry1 = E.next();
+                Row row1 = entry1.getValue();
+                row1.index = entry1.getKey();
+                return row1;
+            } else {return null;}
+        }
     }
 
     public void transSparce(HashMap<Integer, Row> m){
