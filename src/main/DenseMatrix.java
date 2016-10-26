@@ -4,6 +4,7 @@ import java.io.*;
 import java.util.Iterator;
 import java.util.HashMap;
 import java.util.Scanner;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class DenseMatrix implements Matrix {
     public int size;
@@ -160,7 +161,7 @@ public class DenseMatrix implements Matrix {
         return null;
     }
 
-    public void transSparce(HashMap<Integer, Row> m){
+    public void transSparce(ConcurrentHashMap<Integer, Row> m){
         HashMap<Integer,Integer> g = new HashMap<>();
         for (int i=1;i<size;i++){
             for (int j=i+1;j<=size;j++) {

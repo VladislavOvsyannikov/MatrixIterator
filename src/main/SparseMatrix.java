@@ -4,17 +4,18 @@ import java.io.*;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Scanner;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class SparseMatrix implements Matrix{
     public int size;
-    public HashMap<Integer,Row> map;
+    public ConcurrentHashMap<Integer,Row> map;
 
     public SparseMatrix(String file){
         readSparse(file);
     }
 
     public SparseMatrix(int size){
-        this.map = new HashMap<>();
+        this.map = new ConcurrentHashMap<Integer,Row>();
         this.size = size;
     }
 
@@ -32,7 +33,7 @@ public class SparseMatrix implements Matrix{
         transSparce(other.map);
         SparseMatrix result = new SparseMatrix(size);
 
-        Iterator<HashMap.Entry<Integer, Row>> iterMap1 = this.map.entrySet().iterator();
+        Iterator<ConcurrentHashMap.Entry<Integer, Row>> iterMap1 = this.map.entrySet().iterator();
 
         Thread t1 = new Thread(new MulSS(result.map,this.map,other.map,iterMap1));
         Thread t2 = new Thread(new MulSS(result.map,this.map,other.map,iterMap1));
@@ -76,12 +77,12 @@ public class SparseMatrix implements Matrix{
     }
 
     public static class MulSS implements Runnable {
-        HashMap<Integer, Row> A;
-        HashMap<Integer, Row> B;
-        HashMap<Integer, Row> res;
+        ConcurrentHashMap<Integer, Row> A;
+        ConcurrentHashMap<Integer, Row> B;
+        ConcurrentHashMap<Integer, Row> res;
         static Iterator<HashMap.Entry<Integer, Row>> E;
 
-        public MulSS(HashMap<Integer, Row> res,HashMap<Integer, Row> A, HashMap<Integer, Row> B, Iterator<HashMap.Entry<Integer, Row>> E) {
+        public MulSS(ConcurrentHashMap<Integer, Row> res,ConcurrentHashMap<Integer, Row> A, ConcurrentHashMap<Integer, Row> B, Iterator<HashMap.Entry<Integer, Row>> E) {
             this.A = A;
             this.B = B;
             this.E = E;
@@ -121,7 +122,7 @@ public class SparseMatrix implements Matrix{
         }
     }
 
-    public void transSparce(HashMap<Integer, Row> m){
+    public void transSparce(ConcurrentHashMap<Integer, Row> m){
         HashMap<Integer,Integer> g = new HashMap<>();
         for (int i=1;i<size;i++){
             for (int j=i+1;j<=size;j++) {
@@ -184,7 +185,7 @@ public class SparseMatrix implements Matrix{
         } catch (IOException e) {
             e.printStackTrace();
         }
-        this.map = new HashMap<>();
+        this.map = new ConcurrentHashMap<>();
         for (int i = 1; i <= size; i++) {
             Row row = new Row();
             for (int j = 1; j <= size; j++) {

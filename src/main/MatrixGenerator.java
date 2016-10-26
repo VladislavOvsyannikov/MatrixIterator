@@ -15,7 +15,7 @@ public class MatrixGenerator
 
     public static final String MATRIX1_NAME = "src/inS1.txt";
     public static final String MATRIX2_NAME = "src/inS2.txt";
-    public static final int SIZE = 100;
+    public static final int SIZE = 1000;
 
     private final int emptyRowFraction;
     private final int size;
@@ -64,7 +64,7 @@ public class MatrixGenerator
         Matrix m2 = new SparseMatrix(MATRIX2_NAME);
     System.out.println("2 loaded");
      long start = System.currentTimeMillis();
-    m1.mul(m2).toString();
+    m1.mul(m2);
     System.out.println("Sparse Matrix time: " +(System.currentTimeMillis() - start));
 
     }
