@@ -80,9 +80,9 @@ public class SparseMatrix implements Matrix{
         ConcurrentHashMap<Integer, Row> A;
         ConcurrentHashMap<Integer, Row> B;
         ConcurrentHashMap<Integer, Row> res;
-        static Iterator<HashMap.Entry<Integer, Row>> E;
+        static Iterator<ConcurrentHashMap.Entry<Integer, Row>> E;
 
-        public MulSS(ConcurrentHashMap<Integer, Row> res,ConcurrentHashMap<Integer, Row> A, ConcurrentHashMap<Integer, Row> B, Iterator<HashMap.Entry<Integer, Row>> E) {
+        public MulSS(ConcurrentHashMap<Integer, Row> res,ConcurrentHashMap<Integer, Row> A, ConcurrentHashMap<Integer, Row> B, Iterator<ConcurrentHashMap.Entry<Integer, Row>> E) {
             this.A = A;
             this.B = B;
             this.E = E;
@@ -112,9 +112,9 @@ public class SparseMatrix implements Matrix{
                 res.put(row1.index, resRow);
             }
         }
-        public synchronized Row getFreeRow(Iterator<HashMap.Entry<Integer, Row>> E) {
+        public synchronized Row getFreeRow(Iterator<ConcurrentHashMap.Entry<Integer, Row>> E) {
             if (E.hasNext()) {
-                HashMap.Entry<Integer, Row> entry1 = E.next();
+                ConcurrentHashMap.Entry<Integer, Row> entry1 = E.next();
                 Row row1 = entry1.getValue();
                 row1.index = entry1.getKey();
                 return row1;

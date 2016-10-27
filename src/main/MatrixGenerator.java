@@ -15,7 +15,7 @@ public class MatrixGenerator
 
     public static final String MATRIX1_NAME = "src/inS1.txt";
     public static final String MATRIX2_NAME = "src/inS2.txt";
-    public static final int SIZE = 1000;
+    public static final int SIZE = 2000;
 
     private final int emptyRowFraction;
     private final int size;
