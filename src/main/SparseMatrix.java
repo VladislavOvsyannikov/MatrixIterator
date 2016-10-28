@@ -47,7 +47,6 @@ public class SparseMatrix implements Matrix{
         t2.join();
         t3.join();
         t4.join();
-
 // Iterator<HashMap.Entry<Integer, Row>> iterMap1 = this.map.entrySet().iterator();
 // while (iterMap1.hasNext()) {
 // HashMap.Entry<Integer, Row> entry1 = iterMap1.next();
@@ -72,7 +71,6 @@ public class SparseMatrix implements Matrix{
 // }
 // res.map.put(entry1.getKey(), resRow);
 // }
-
         return result;
     }
 
@@ -112,13 +110,17 @@ public class SparseMatrix implements Matrix{
                 res.put(row1.index, resRow);
             }
         }
-        public synchronized Row getFreeRow(Iterator<ConcurrentHashMap.Entry<Integer, Row>> E) {
-            if (E.hasNext()) {
-                ConcurrentHashMap.Entry<Integer, Row> entry1 = E.next();
-                Row row1 = entry1.getValue();
-                row1.index = entry1.getKey();
-                return row1;
-            } else {return null;}
+        public Row getFreeRow(Iterator<ConcurrentHashMap.Entry<Integer, Row>> E) {
+            synchronized (E) {
+                if (E.hasNext()) {
+                    ConcurrentHashMap.Entry<Integer, Row> entry1 = E.next();
+                    Row row1 = entry1.getValue();
+                    row1.index = entry1.getKey();
+                    return row1;
+                } else {
+                    return null;
+                }
+            }
         }
     }
 

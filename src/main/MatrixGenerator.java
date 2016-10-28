@@ -11,7 +11,7 @@ public class MatrixGenerator
 {
     public static final int SEED1 = 1;
     public static final int SEED2 = 2;
-    public static final int EMPTY_ROW_FRACTION = 10;
+    public static final int EMPTY_ROW_FRACTION = 50;
 
     public static final String MATRIX1_NAME = "src/inS1.txt";
     public static final String MATRIX2_NAME = "src/inS2.txt";
@@ -49,21 +49,21 @@ public class MatrixGenerator
     private static void testPerformance()
     {
 
-//    System.out.println("Starting loading dense matrices");
-//    Matrix m1 = new DenseMatrix(MATRIX1_NAME);
-//    System.out.println("1 loaded");
-//    Matrix m2 = new DenseMatrix(MATRIX2_NAME);
-//    System.out.println("2 loaded");
-//    long start = System.currentTimeMillis();
-//    m1.mul(m2).toString();
-//    System.out.println("Dense Matrix time: " +(System.currentTimeMillis() - start));
+    System.out.println("Starting loading dense matrices");
+    Matrix m1 = new DenseMatrix(MATRIX1_NAME);
+    System.out.println("1 loaded");
+    Matrix m2 = new DenseMatrix(MATRIX2_NAME);
+    System.out.println("2 loaded");
+    long start = System.currentTimeMillis();
+    m1.mul(m2);
+    System.out.println("Dense Matrix time: " +(System.currentTimeMillis() - start));
 
     System.out.println("Starting loading sparse matrices");
-        Matrix m1 = new SparseMatrix(MATRIX1_NAME);
+         m1 = new SparseMatrix(MATRIX1_NAME);
     System.out.println("1 loaded");
-        Matrix m2 = new SparseMatrix(MATRIX2_NAME);
+         m2 = new SparseMatrix(MATRIX2_NAME);
     System.out.println("2 loaded");
-     long start = System.currentTimeMillis();
+      start = System.currentTimeMillis();
     m1.mul(m2);
     System.out.println("Sparse Matrix time: " +(System.currentTimeMillis() - start));
 
