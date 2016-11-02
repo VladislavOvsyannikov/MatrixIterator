@@ -1,14 +1,12 @@
 package main;
 
 import java.io.*;
-import java.util.Iterator;
-import java.util.HashMap;
-import java.util.Scanner;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class DenseMatrix implements Matrix {
     public int size;
-    public int matrix[][];
+    public double matrix[][];
 
 
     public DenseMatrix(String file){
@@ -16,7 +14,7 @@ public class DenseMatrix implements Matrix {
     }
 
     public DenseMatrix(int size){
-        this.matrix = new int[size][size];
+        this.matrix = new double[size][size];
         this.size = size;
     }
 
@@ -33,11 +31,11 @@ public class DenseMatrix implements Matrix {
     public DenseMatrix mulDenseDense(DenseMatrix other) throws InterruptedException {
         transDense(other.matrix);
         DenseMatrix result = new DenseMatrix(size);
-        int k = size/4;
-        Thread t1 = new Thread(new MulDD(result.matrix,this.matrix, other.matrix,0,k));
-        Thread t2 = new Thread(new MulDD(result.matrix,this.matrix, other.matrix,k,2*k));
-        Thread t3 = new Thread(new MulDD(result.matrix,this.matrix, other.matrix,2*k,3*k));
-        Thread t4 = new Thread(new MulDD(result.matrix,this.matrix, other.matrix,3*k,size));
+        MulDD t = new MulDD(result.matrix,this.matrix, other.matrix);
+        Thread t1 = new Thread(t);
+        Thread t2 = new Thread(t);
+        Thread t3 = new Thread(t);
+        Thread t4 = new Thread(t);
         t1.start();
         t2.start();
         t3.start();
@@ -50,27 +48,30 @@ public class DenseMatrix implements Matrix {
     }
 
     public class MulDD implements Runnable{
-        int[][] A;
-        int[][] B;
-        int m;
-        int n;
-        int[][] res;
+        double[][] A;
+        double[][] B;
+        double[][] res;
+        int num = 0;
 
-        public MulDD(int[][] res, int[][] A, int[][] B, int m, int n){
+        public MulDD(double[][] res, double[][] A, double[][] B){
             this.A = A;
             this.B = B;
-            this.n = n;
-            this.m = m;
             this.res = res;
         }
 
         public void run() {
-            for (int i =m ; i < n; i++) {
+            for (int i = getFreeNum(); i < size; i = getFreeNum()) {
                 for (int j = 0; j < size; j++) {
                     for (int k = 0; k < size; k++) {
                         res[i][j] = res[i][j] + A[i][k] * B[j][k];
                     }
                 }
+            }
+        }
+
+        public int getFreeNum(){
+            synchronized (this) {
+                return num++;
             }
         }
     }
@@ -84,9 +85,9 @@ public class DenseMatrix implements Matrix {
                 HashMap.Entry<Integer, Row> entry2 = iterMap2.next();
                 Row row2 = entry2.getValue();
                 if (!row2.mapRow.isEmpty()) {
-                    Iterator<HashMap.Entry<Integer, Integer>> iterRow1 = row2.mapRow.entrySet().iterator();
+                    Iterator<HashMap.Entry<Integer, Double>> iterRow1 = row2.mapRow.entrySet().iterator();
                     while (iterRow1.hasNext()) {
-                        HashMap.Entry<Integer, Integer> entry3 = iterRow1.next();
+                        HashMap.Entry<Integer, Double> entry3 = iterRow1.next();
                         int k = entry3.getKey();
                         int j = entry2.getKey();
                         res.matrix[i][j-1] = res.matrix[i][j-1] + this.matrix[i][k-1] * row2.mapRow.get(k);
@@ -98,10 +99,10 @@ public class DenseMatrix implements Matrix {
     }
 
 
-    public void transDense(int[][] a){
+    public void transDense(double[][] a){
         for (int i=0;i<size-1;i++){
             for (int j=i+1;j<size;j++){
-                int b=a[i][j];
+                double b=a[i][j];
                 a[i][j]=a[j][i];
                 a[j][i]=b;
             }
@@ -132,13 +133,14 @@ public class DenseMatrix implements Matrix {
         Scanner in = null;
         try {
             in = new Scanner(new File(file));
+            in.useLocale(Locale.US);
         } catch (IOException e) {
             e.printStackTrace();
         }
-        this.matrix = new int[size][size];
+        this.matrix = new double[size][size];
         for (int i = 0; i < size; i++) {
             for (int j = 0; j < size; j++) {
-                this.matrix[i][j] = in.nextInt();
+                this.matrix[i][j] = in.nextDouble();
             }
         }
         in.close();
@@ -162,7 +164,7 @@ public class DenseMatrix implements Matrix {
     }
 
     public void transSparce(ConcurrentHashMap<Integer, Row> m){
-        HashMap<Integer,Integer> g = new HashMap<>();
+        HashMap<Integer,Double> g = new HashMap<>();
         for (int i=1;i<size;i++){
             for (int j=i+1;j<=size;j++) {
                 g.put(0,m.get(i).mapRow.get(j));

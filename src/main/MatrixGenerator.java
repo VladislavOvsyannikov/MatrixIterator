@@ -11,7 +11,7 @@ public class MatrixGenerator
 {
     public static final int SEED1 = 1;
     public static final int SEED2 = 2;
-    public static final int EMPTY_ROW_FRACTION = 50;
+    public static final int EMPTY_ROW_FRACTION = 100;
 
     public static final String MATRIX1_NAME = "src/inS1.txt";
     public static final String MATRIX2_NAME = "src/inS2.txt";
@@ -29,7 +29,7 @@ public class MatrixGenerator
         this.size = size;
         this.file = file;
         rnd = new Random(seed);
-        emptyRow = Collections.nCopies(size, "0").stream().collect(Collectors.joining(" "));
+        emptyRow = Collections.nCopies(size, "0.0").stream().collect(Collectors.joining(" "));
     }
 
     public static void main(String args[])
@@ -59,11 +59,11 @@ public class MatrixGenerator
     System.out.println("Dense Matrix time: " +(System.currentTimeMillis() - start));
 
     System.out.println("Starting loading sparse matrices");
-         m1 = new SparseMatrix(MATRIX1_NAME);
+    m1 = new SparseMatrix(MATRIX1_NAME);
     System.out.println("1 loaded");
-         m2 = new SparseMatrix(MATRIX2_NAME);
+    m2 = new SparseMatrix(MATRIX2_NAME);
     System.out.println("2 loaded");
-      start = System.currentTimeMillis();
+    start = System.currentTimeMillis();
     m1.mul(m2);
     System.out.println("Sparse Matrix time: " +(System.currentTimeMillis() - start));
 
@@ -84,7 +84,7 @@ public class MatrixGenerator
 
     private String generateRow()
     {
-        return rnd.ints(0, emptyRowFraction).limit(size).mapToObj(r -> (r == 0) ? "" + rnd.nextInt(10) : "0")
+        return rnd.ints(0, emptyRowFraction).limit(size).mapToObj(r -> (r == 0) ? "" + rnd.nextDouble()*20.0 : "0.0")
                 .collect(Collectors.joining(" "));
     }
 }

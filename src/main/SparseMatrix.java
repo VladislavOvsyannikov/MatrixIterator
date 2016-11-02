@@ -3,6 +3,7 @@ package main;
 import java.io.*;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Locale;
 import java.util.Scanner;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -35,10 +36,12 @@ public class SparseMatrix implements Matrix{
 
         Iterator<ConcurrentHashMap.Entry<Integer, Row>> iterMap1 = this.map.entrySet().iterator();
 
-        Thread t1 = new Thread(new MulSS(result.map,this.map,other.map,iterMap1));
-        Thread t2 = new Thread(new MulSS(result.map,this.map,other.map,iterMap1));
-        Thread t3 = new Thread(new MulSS(result.map,this.map,other.map,iterMap1));
-        Thread t4 = new Thread(new MulSS(result.map,this.map,other.map,iterMap1));
+        MulSS t = new MulSS(result.map,this.map,other.map,iterMap1);
+
+        Thread t1 = new Thread(t);
+        Thread t2 = new Thread(t);
+        Thread t3 = new Thread(t);
+        Thread t4 = new Thread(t);
         t1.start();
         t2.start();
         t3.start();
@@ -47,38 +50,14 @@ public class SparseMatrix implements Matrix{
         t2.join();
         t3.join();
         t4.join();
-// Iterator<HashMap.Entry<Integer, Row>> iterMap1 = this.map.entrySet().iterator();
-// while (iterMap1.hasNext()) {
-// HashMap.Entry<Integer, Row> entry1 = iterMap1.next();
-// Row row1 = entry1.getValue();
-// Row resRow = new Row();
-// Iterator<HashMap.Entry<Integer, Row>> iterMap2 = other.map.entrySet().iterator();
-// while (iterMap2.hasNext()) {
-// HashMap.Entry<Integer, Row> entry2 = iterMap2.next();
-// Row row2 = entry2.getValue();
-// if (!row1.mapRow.isEmpty() && !row2.mapRow.isEmpty()) {
-// Iterator<HashMap.Entry<Integer, Integer>> iterRow1 = row1.mapRow.entrySet().iterator();
-// int r = 0;
-// while (iterRow1.hasNext()) {
-// HashMap.Entry<Integer, Integer> entry3 = iterRow1.next();
-// int j = entry3.getKey();
-// if (row2.mapRow.get(j)!=null){
-// r = r + entry3.getValue()*row2.mapRow.get(j);
-// resRow.mapRow.put(entry2.getKey(),r);
-// }
-// }
-// }
-// }
-// res.map.put(entry1.getKey(), resRow);
-// }
         return result;
     }
 
-    public static class MulSS implements Runnable {
+    public class MulSS implements Runnable {
         ConcurrentHashMap<Integer, Row> A;
         ConcurrentHashMap<Integer, Row> B;
         ConcurrentHashMap<Integer, Row> res;
-        static Iterator<ConcurrentHashMap.Entry<Integer, Row>> E;
+        Iterator<ConcurrentHashMap.Entry<Integer, Row>> E;
 
         public MulSS(ConcurrentHashMap<Integer, Row> res,ConcurrentHashMap<Integer, Row> A, ConcurrentHashMap<Integer, Row> B, Iterator<ConcurrentHashMap.Entry<Integer, Row>> E) {
             this.A = A;
@@ -95,10 +74,10 @@ public class SparseMatrix implements Matrix{
                     HashMap.Entry<Integer, Row> entry2 = iterMap2.next();
                     Row row2 = entry2.getValue();
                     if (!row1.mapRow.isEmpty() && !row2.mapRow.isEmpty()) {
-                        Iterator<HashMap.Entry<Integer, Integer>> iterRow1 = row1.mapRow.entrySet().iterator();
-                        int r = 0;
+                        Iterator<HashMap.Entry<Integer, Double>> iterRow1 = row1.mapRow.entrySet().iterator();
+                        double r = 0;
                         while (iterRow1.hasNext()) {
-                            HashMap.Entry<Integer, Integer> entry3 = iterRow1.next();
+                            HashMap.Entry<Integer, Double> entry3 = iterRow1.next();
                             int j = entry3.getKey();
                             if (row2.mapRow.get(j) != null) {
                                 r = r + entry3.getValue() * row2.mapRow.get(j);
@@ -125,7 +104,7 @@ public class SparseMatrix implements Matrix{
     }
 
     public void transSparce(ConcurrentHashMap<Integer, Row> m){
-        HashMap<Integer,Integer> g = new HashMap<>();
+        HashMap<Integer,Double> g = new HashMap<>();
         for (int i=1;i<size;i++){
             for (int j=i+1;j<=size;j++) {
                 g.put(0,m.get(i).mapRow.get(j));
@@ -145,10 +124,10 @@ public class SparseMatrix implements Matrix{
             Row resRow = new Row();
             if (!row1.mapRow.isEmpty()){
                 for (int k = 0; k < size; k++) {
-                    Iterator<HashMap.Entry<Integer, Integer>> iterRow1 = row1.mapRow.entrySet().iterator();
-                    int r = 0;
+                    Iterator<HashMap.Entry<Integer, Double>> iterRow1 = row1.mapRow.entrySet().iterator();
+                    double r = 0;
                     while (iterRow1.hasNext()) {
-                        HashMap.Entry<Integer, Integer> entry3 = iterRow1.next();
+                        HashMap.Entry<Integer, Double> entry3 = iterRow1.next();
                         int j = entry3.getKey();
                         r = r + other.matrix[k][j-1]*row1.mapRow.get(j);
                         resRow.mapRow.put(k+1,r);
@@ -184,6 +163,7 @@ public class SparseMatrix implements Matrix{
         Scanner in = null;
         try {
             in = new Scanner(new File(file));
+            in.useLocale(Locale.US);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -191,8 +171,8 @@ public class SparseMatrix implements Matrix{
         for (int i = 1; i <= size; i++) {
             Row row = new Row();
             for (int j = 1; j <= size; j++) {
-                int a = in.nextInt();
-                if (a != 0) {
+                double a = in.nextDouble();
+                if (a != 0.0) {
                     row.mapRow.put(j,a);
                 }
             }
@@ -210,17 +190,17 @@ public class SparseMatrix implements Matrix{
         for (int i = 1; i <= size; i++) {
             Row row = map.get(i);
             for (int j = 1; j <= size; j++) {
-                if (row.mapRow.get(j)==null) out.print(0+"  "); else out.print(row.mapRow.get(j)+"  ");
+                if (row.mapRow.get(j)==null) out.print(0.0+"  "); else out.print(row.mapRow.get(j)+"  ");
                 if (j==size) out.println();
             }
         }
         out.close();
         return null;
     }
-    public void transDense(int[][] a){
+    public void transDense(double[][] a){
         for (int i=0;i<size-1;i++){
             for (int j=i+1;j<size;j++){
-                int b=a[i][j];
+                double b=a[i][j];
                 a[i][j]=a[j][i];
                 a[j][i]=b;
             }
